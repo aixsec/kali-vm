@@ -11,4 +11,5 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
 apt-get install -y '?priority(standard) !?section(lib) !(~napt-listchanges|~ndebian-faq|~ndoc-debian|~npython3-reportbug|~nreportbug|~nwamerican)'
+apt-get autoremove --purge -y
 apt-get clean
