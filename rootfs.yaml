@@ -86,7 +86,7 @@ actions:
   - description: "Finish installation"
     action: run
     chroot: true
-    script: scripts/finish-install.sh debconf etc-hosts usergroups zsh
+    script: scripts/finish-install.sh debconf etc-hosts terminal usergroups zsh
 
   - description: "Final cleanup (from within)"
     action: run

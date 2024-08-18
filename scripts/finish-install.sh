@@ -78,6 +78,27 @@ configure_usergroups() {
     done
 }
 
+pkg_installed() {
+    dpkg -s "$1" 2>/dev/null | grep -q "ok installed"
+}
+
+configure_terminal() {
+    while read -r desktop terminal; do
+        pkg_installed kali-desktop-$desktop || continue
+        echo "INFO: setting x-terminal-emulator alternative to '$terminal'"
+        update-alternatives --verbose --set x-terminal-emulator /usr/bin/$terminal || true
+        break
+    done <<END
+e17   terminology
+gnome gnome-terminal.wrapper
+i3    kitty
+kde   konsole
+lxde  lxterminal
+mate  mate-terminal.wrapper
+xfce  qterminal
+END
+}
+
 configure_etc_hosts() {
     hostname=$(cat /etc/hostname)
 
@@ -98,7 +119,7 @@ configure_etc_hosts() {
 save_debconf() {
     # save values for keyboard-configuration, otherwise debconf will
     # ask to configure the keyboard when the package is upgraded.
-    if dpkg -s keyboard-configuration 2>/dev/null | grep -q "ok installed"; then
+    if pkg_installed keyboard-configuration; then
         DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
             dpkg-reconfigure keyboard-configuration
     fi
@@ -109,6 +130,7 @@ while [ $# -ge 1 ]; do
         apt-sources) configure_apt_sources_list ;;
         debconf)     save_debconf ;;
         etc-hosts)   configure_etc_hosts ;;
+        terminal)    configure_terminal ;;
         usergroups)  configure_usergroups ;;
         zsh)         configure_zsh ;;
         *) echo "ERROR: Unsupported argument '$1'"; exit 1 ;;
