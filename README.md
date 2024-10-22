@@ -247,7 +247,7 @@ To override this detection, you can export the environment variable `http_proxy`
 However, you should remember that the build happens within a QEMU Virtual Machine, therefore `localhost` in the build environment refers to the VM, not to the host.
 If you want to reach the host from the VM, you probably want to use `http://10.0.2.2`.
 
-For example, if you want to use a proxy that is running on your machine on the port 9876, use: `export http_proxy=10.0.2.2:9876`.
+For example, if you want to use a proxy that is running on your machine on the port 9876, use: `export http_proxy=http://10.0.2.2:9876`.
 If you want to make sure that no proxy is used: `export http_proxy= ./build.sh [...]`.
 
 Also refer to <https://github.com/go-debos/debos#environment-variables> for more details.
