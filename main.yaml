@@ -11,6 +11,7 @@
 {{- $zip := .zip }}
 
 {{- $desktop := .desktop }}
+{{- $hostname := .hostname }}
 {{- $locale := .locale }}
 {{- $password := .password }}
 {{- $packages := .packages }}
@@ -33,6 +34,7 @@ actions:
       branch: {{ $branch }}
       mirror: {{ $mirror }}
       desktop: {{ $desktop }}
+      hostname: {{ $hostname }}
       locale: {{ $locale }}
       password: {{ $password }}
       packages: {{ $packages }}
