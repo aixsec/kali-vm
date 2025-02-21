@@ -183,49 +183,6 @@ ask_confirmation() {
     echo ""
 }
 
-# create_vm
-create_vm() {
-    mkdir -pv "$OUTDIR/"
-    rm -fv "$OUTDIR/.artifacts"
-
-    # Filename structure for final file
-    OUTPUT=kali-linux-$VERSION-$VARIANT-$ARCH
-
-    if [ $VARIANT = rootfs ]; then
-        ROOTFS=rootfs-$VERSION-$ARCH
-        IMAGENAME=
-    elif [ "$ROOTFS" ]; then
-        ROOTFS=${ROOTFS%.tar.*}
-        IMAGENAME=$OUTPUT
-    else
-        ROOTFS=
-        IMAGENAME=$OUTPUT
-    fi
-
-    debos "$@" \
-        -t arch:$ARCH \
-        -t branch:$BRANCH \
-        -t desktop:$DESKTOP \
-        -t format:$FORMAT \
-        -t hostname:$HOSTNAME \
-        -t imagename:$IMAGENAME \
-        -t imagesize:$SIZE \
-        -t keep:$KEEP \
-        -t locale:$LOCALE \
-        -t mirror:$MIRROR \
-        -t packages:"$PACKAGES" \
-        -t password:"$PASSWORD" \
-        -t rootfs:$ROOTFS \
-        -t timezone:$TIMEZONE \
-        -t toolset:$TOOLSET \
-        -t uefi:$UEFI \
-        -t username:$USERNAME \
-        -t variant:$VARIANT \
-        -t zip:$ZIP \
-        main.yaml
-}
-
-
 USAGE="Usage: $(basename $0) <options> [-- <debos options>]
 
 Build a Kali Linux VM image
@@ -501,8 +458,43 @@ echo "# Build options:"
 ask_confirmation \
     || { echo "Abort"; exit 1; }
 
-# Build
-create_vm "$@"
+# Prepare output directory
+mkdir -pv "$OUTDIR/"
+rm -fv "$OUTDIR/.artifacts"
+
+# Prepare build artifact names
+if [ $VARIANT = rootfs ]; then
+    IMAGENAME=
+    ROOTFS=rootfs-$VERSION-$ARCH
+else
+    IMAGENAME=kali-linux-$VERSION-$VARIANT-$ARCH
+    if [ "$ROOTFS" ]; then
+        ROOTFS=${ROOTFS%.tar.*}
+    fi
+fi
+
+# Build!
+debos "$@" \
+    -t arch:$ARCH \
+    -t branch:$BRANCH \
+    -t desktop:$DESKTOP \
+    -t format:$FORMAT \
+    -t hostname:$HOSTNAME \
+    -t imagename:$IMAGENAME \
+    -t imagesize:$SIZE \
+    -t keep:$KEEP \
+    -t locale:$LOCALE \
+    -t mirror:$MIRROR \
+    -t packages:"$PACKAGES" \
+    -t password:"$PASSWORD" \
+    -t rootfs:$ROOTFS \
+    -t timezone:$TIMEZONE \
+    -t toolset:$TOOLSET \
+    -t uefi:$UEFI \
+    -t username:$USERNAME \
+    -t variant:$VARIANT \
+    -t zip:$ZIP \
+    main.yaml
 
 # Finish
 cat << EOF
