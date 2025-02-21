@@ -3,14 +3,13 @@
 {{- $mirror := .mirror }}
 
 {{- $desktop := .desktop }}
+{{- $hostname := .hostname }}
 {{- $locale := .locale }}
 {{- $password := .password }}
 {{- $packages := .packages }}
 {{- $timezone := .timezone }}
 {{- $toolset := .toolset }}
 {{- $username := .username }}
-
-{{- $hostname := or .hostname "kali" }}
 
 architecture: {{ $arch }}
 
