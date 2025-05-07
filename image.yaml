@@ -7,6 +7,15 @@
 {{- $variant := .variant }}
 {{- $zip := .zip }}
 
+# either of: partition, file, none
+{{- $swap := "file" }}
+{{- $swapsize := "1GB" }}
+
+{{- $rootend := "100%" }}
+{{- if eq $swap "partition" }}
+{{-   $rootend = (printf "-%s" $swapsize) }}
+{{- end }}
+
 architecture: {{ $arch }}
 
 actions:
@@ -25,7 +34,14 @@ actions:
       - name: root
         fs: ext4
         start: 512M
+        end: {{ $rootend }}
+{{ if eq $swap "partition" }}
+      - name: swap
+        fs: none
+        start: {{ $rootend }}
         end: 100%
+        flags: [ swap ]
+{{ end }}
     mountpoints:
       - mountpoint: /
         partition: root
@@ -38,8 +54,15 @@ actions:
       - name: root
         fs: ext4
         start: 2048s
-        end: 100%
+        end: {{ $rootend }}
         flags: [ boot ]
+{{ if eq $swap "partition" }}
+      - name: swap
+        fs: none
+        start: {{ $rootend }}
+        end: 100%
+        flags: [ swap ]
+{{ end }}
     mountpoints:
       - mountpoint: /
         partition: root
@@ -49,10 +72,10 @@ actions:
   - action: filesystem-deploy
     setup-kernel-cmdline: false
 
-  - description: "Create a swap file"
+  - description: "Setup the swap area"
     action: run
     chroot: true
-    script: scripts/create-swapfile.sh
+    script: scripts/setup-swap.sh {{ $swap }} {{ $swapsize }}
 
   - description: "Install the kernel & bootloader"
     action: apt
