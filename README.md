@@ -104,6 +104,7 @@ Customization options:
   -D DESKTOP  Desktop environment installed in the image, default: xfce
               Supported values: e17 gnome i3 kde lxde mate xfce none
   -H HOSTNAME Set system host name, default: kali
+  -K KEYBOARD Set keyboard layout, default: en
   -L LOCALE   Set locale, default: en_US.UTF-8
   -P PACKAGES Install extra packages (comma/space separated list)
   -T TOOLSET  The selection of tools to include in the image, default: default
@@ -191,6 +192,10 @@ Let's also install the package `metasploit-framework`:
 
 - - -
 
+To set the `keyboard layout`, use the option -K.
+Pick a value from the options listed under `! layout` of `/usr/share/X11/xkb/rules/xorg.lst`, or check what's configured on your system with `grep XKBLAYOUT /etc/default/keyboard`.
+There is also a shortcut of `-K same` to match the host system.
+
 To set the `locale`, use the option `-L`.
 Pick a value in the 1st column of `/usr/share/i18n/SUPPORTED`, or check what's configured on your system with `grep -v ^# /etc/locale.gen`, or simply `echo $LANG`.
 There is also a shortcut of `-L same` to match the host system.
@@ -206,7 +211,7 @@ The value is a single string and the `:` is used to separate the username from t
 Here we will build a Kali image, and configure it to mimic the host system: same locale and same timezone and same username (with the password of `password`):
 
 ```console
-./build.sh -L same -Z same -U $USER:password
+./build.sh -K same -L same -Z same -U $USER:password
 ```
 
 ### Variants and formats

@@ -5,7 +5,7 @@ set -eu
 # Helpers
 
 fail() { echo "$@" >&2; exit 1; }
-usage() { fail "Usage: $(basename $0) VDI"; }
+usage() { fail "Usage: $(basename $0) [-K <KeyboardLayout>] VDI"; }
 
 get_vdi_disk_uuid() {
 
@@ -38,7 +38,20 @@ gen_vbox_mac_address() {
     echo $p1$p2
 }
 
+keyboard_layout=us
+
 # Validate arguments
+
+while [ $# -gt 0 ]; do
+    case $1 in
+        -K)
+            shift
+            keyboard_layout=$1
+            ;;
+        *) break ;;
+    esac
+    shift
+done
 
 [ $# -eq 1 ] || usage
 
@@ -78,7 +91,7 @@ esac
 
 description=$(sed \
     -e "s|%date%|$(date --iso-8601)|g" \
-    -e "s|%kbdlayout%|US keyboard layout|g" \
+    -e "s|%kbdlayout%|$keyboard_layout keyboard layout|g" \
     -e "s|%platform%|$platform|g" \
     -e "s|%version%|$version|g" \
     $description_template)
