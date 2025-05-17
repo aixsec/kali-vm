@@ -124,11 +124,17 @@ valid_hostname() {
 valid_keyboard() {
     # Cf. keyboard(5) and xkeyboard-config(7)
     local layout=$1
-    valid_layouts=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! layout/,/^$/p' | awk 'NR > 1 {print $1}')
-    if echo "$output" | grep -q "$layout"; then
+    if [ -e /usr/share/X11/xkb/rules/xorg.lst ]; then
+        valid_layouts=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! layout/,/^$/p' | awk 'NR > 1 {print $1}')
+        if echo "$valid_layouts" | grep -q "$layout"; then
+            return 0
+        else
+            return 1
+        fi
+    else 
+        # X11/XKB is not installed on all systems - the layout could still be valid, so no need to exit here
+        echo "Failed to validate keyboard layout because the file with allowed layouts is missing. This may happen because X11 is not installed (For example when building in container). The build may fail later on."
         return 0
-    else
-        return 1
     fi
 }
 
@@ -336,6 +342,8 @@ else
     # Validate hostname, cf. hostname(7)
     valid_hostname "$HOSTNAME" \
         || fail_invalid -H "$HOSTNAME" "must contain only letters, digits and hyphens"
+    valid_keyboard "$KEYBOARD" \
+        || fail_invalid -H "$KEYBOARD" "must be listet under 'layout' in /usr/share/X11/xkb/rules/xorg.lst"
     # Unpack USERPASS to USERNAME and PASSWORD
     echo $USERPASS | grep -q ":" \
         || fail_invalid -U $USERPASS "must be of the form <username>:<password>"
