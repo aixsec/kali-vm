@@ -105,6 +105,10 @@ Customization options:
               Supported values: e17 gnome i3 kde lxde mate xfce none
   -H HOSTNAME Set system host name, default: kali
   -K KEYBOARD Set keyboard layout, default: en
+              For multiple layouts, use comma separated lists
+              For additionally configuring model, variant and options, use slash separated lists
+              If leaving one empty, the default will be kept
+              Example: us//nodeadkeys/grp:toggle,grp_led:scroll
   -L LOCALE   Set locale, default: en_US.UTF-8
   -P PACKAGES Install extra packages (comma/space separated list)
   -T TOOLSET  The selection of tools to include in the image, default: default
@@ -192,8 +196,10 @@ Let's also install the package `metasploit-framework`:
 
 - - -
 
-To set the `keyboard layout`, use the option -K.
-Pick a value from the options listed under `! layout` of `/usr/share/X11/xkb/rules/xorg.lst`, or check what's configured on your system with `grep XKBLAYOUT /etc/default/keyboard`.
+To set the `keyboard settings`, use the option -K.
+For the layout, pick values from the options listed under `! layout` of `/usr/share/X11/xkb/rules/xorg.lst` and separate them by commas.
+To additionally configure model, variant and options, pick values from the options listed under `! model`, `!variant` and `!option` of `/usr/share/X11/xkb/rules/xorg.lst`.
+Or check what's configured on your system with `cat /etc/default/keyboard`
 There is also a shortcut of `-K same` to match the host system.
 
 To set the `locale`, use the option `-L`.

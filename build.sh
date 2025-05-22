@@ -61,7 +61,10 @@ default_toolset() { [ ${DESKTOP:-$DEFAULT_DESKTOP} = none ] \
     || echo $DEFAULT_TOOLSET; }
 default_version() { echo ${BRANCH:-$DEFAULT_BRANCH} | sed "s/^kali-//"; }
 get_keyboard() { [-e /etc/default/keyboard ] \
-    && echo $(grep "XKBLAYOUT" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "') \
+    && echo $(grep "XKBLAYOUT" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "')/ \
+            $(grep "XKBMODEL" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "')/ \
+            $(grep "XKBVARIANT" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "')/ \
+            $(grep "XKBOPTIONS" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "') \
     || echo $DEFAULT_KEYBOARD; }
 get_locale() { [ -v $LANG ] \
     && echo $LANG \
@@ -123,17 +126,54 @@ valid_hostname() {
 
 valid_keyboard() {
     # Cf. keyboard(5) and xkeyboard-config(7)
-    local layout=$1
     if [ -e /usr/share/X11/xkb/rules/xorg.lst ]; then
-        valid_layouts=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! layout/,/^$/p' | awk 'NR > 1 {print $1}')
-        if echo "$valid_layouts" | grep -q "$layout"; then
-            return 0
-        else
-            return 1
+        IFS='/' read -r layouts model variants options <<< "$1"
+
+        if [[ -n "$layouts" ]]; then
+            local valid_layouts=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! layout/,/^$/p' | awk 'NR > 1 {print $1}')
+            IFS=',' read -r -a layout_array <<< "$layouts"
+            for layout in "${layout_array[@]}"; do
+                if ! echo "$valid_layouts" | grep -q -w "$layout"; then
+                    echo "Invalid layout: $layout"
+                    return 1
+                fi
+            done
         fi
+
+        if [[ -n "$model" ]]; then
+            local valid_models=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! model/,/^$/p' | awk 'NR > 1 {print $1}')
+            if ! echo "$valid_models" | grep -q -w "$model"; then
+                echo "Invalid model: $model"
+                return 1
+            fi
+        fi
+
+        if [[ -n "$variants" ]]; then
+            local valid_variants=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! variant/,/^$/p' | awk 'NR > 1 {print $1}')
+            IFS=',' read -r -a variant_array <<< "$variants"
+            for variant in "${variant_array[@]}"; do
+                if ! echo "$valid_variants" | grep -q -w "$variant"; then
+                    echo "Invalid variant: $variant"
+                    return 1
+                fi
+            done
+        fi
+
+        if [[ -n "$options" ]]; then
+            local valid_options=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! option/,/^$/p' | awk 'NR > 1 {print $1}')
+            IFS=',' read -r -a option_array <<< "$options"
+            for option in "${option_array[@]}"; do
+                if ! echo "$valid_options" | grep -q -w "$option"; then
+                    echo "Invalid option: $option"
+                    return 1
+                fi
+            done
+        fi
+
+        return 0
     else 
         # X11/XKB is not installed on all systems - the layout could still be valid, so no need to exit here
-        echo "Failed to validate keyboard layout because the file with allowed layouts is missing. This may happen because X11 is not installed (For example when building in container). The build may fail later on."
+        echo "Failed to validate keyboard because the file with allowed values is missing. This may happen because X11 is not installed (For example when building in container). The build may fail later on."
         return 0
     fi
 }
@@ -230,6 +270,10 @@ Customization options:
               Supported values: $SUPPORTED_DESKTOPS
   -H HOSTNAME Set system host name, default: $(b $DEFAULT_HOSTNAME)
   -K KEYBOARD Set keyboard layout, default: $(b $DEFAULT_KEYBOARD)
+              For multiple layouts, use comma separated lists
+              For additionally configuring model, variant and options, use slash separated lists
+              If leaving one empty, the default will be kept
+              Example: us//nodeadkeys/grp:toggle,grp_led:scroll
   -L LOCALE   Set locale, default: $(b $DEFAULT_LOCALE)
   -P PACKAGES Install extra packages (comma/space separated list)
   -T TOOLSET  The selection of tools to include in the image, default: $(b $(default_toolset))
@@ -343,7 +387,7 @@ else
     valid_hostname "$HOSTNAME" \
         || fail_invalid -H "$HOSTNAME" "must contain only letters, digits and hyphens"
     valid_keyboard "$KEYBOARD" \
-        || fail_invalid -H "$KEYBOARD" "must be listet under 'layout' in /usr/share/X11/xkb/rules/xorg.lst"
+        || fail_invalid -H "$KEYBOARD" "must be of the form <layouts>/<models>/<variants>/<options> with valus listed in /usr/share/X11/xkb/rules/xorg.lst"
     # Unpack USERPASS to USERNAME and PASSWORD
     echo $USERPASS | grep -q ":" \
         || fail_invalid -U $USERPASS "must be of the form <username>:<password>"
@@ -476,7 +520,7 @@ echo "# Build options:"
 [ "$PACKAGES" ] && point "additional packages: $(b $PACKAGES)"
 [ "$USERNAME" ] && point "username & password: $(b $USERNAME $PASSWORD)"
 [ "$HOSTNAME" ] && point "hostname: $(b $HOSTNAME)"
-[ "$KEYBOARD" ] && point "keyboard layout: $(b $KEYBOARD)"
+[ "$KEYBOARD" ] && point "keyboard: $(b $KEYBOARD)"
 [ "$LOCALE"   ] && point "locale: $(b $LOCALE)"
 [ "$TIMEZONE" ] && point "timezone: $(b $TIMEZONE)"
 [ "$KEEP"     ] && point "keep temporary files: $(b $KEEP)"

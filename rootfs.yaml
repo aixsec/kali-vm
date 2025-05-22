@@ -74,7 +74,7 @@ actions:
   - action: overlay
     source: overlays/loopback-interface
 
-  - description: "Set default keyboard layout {{ $keyboard }}"
+  - description: "Set default keyboard {{ $keyboard }}"
     action: run
     chroot: true
     script: scripts/setup-keyboard.sh {{ $keyboard }}
