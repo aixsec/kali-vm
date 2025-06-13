@@ -9,17 +9,11 @@ info() { echo "INFO:" "$@"; }
 
 image=
 keep=0
-keyboard=
 zip=0
 
 while [ $# -gt 0 ]; do
     case $1 in
         -k) keep=1 ;;
-        -K) shift  # Move to the next argument to get the value for keyboard
-            if [ $# -gt 0 ]; then
-                keyboard=$1
-            fi
-            ;;
         -z) zip=1 ;;
         *) image=$1 ;;
     esac
@@ -33,7 +27,7 @@ qemu-img convert -O vdi $image.raw $image.vdi
 [ $keep -eq 1 ] || rm -f $image.raw
 
 info "Generate $image.vbox"
-$SCRIPTSDIR/generate-vbox.sh -K $keyboard $image.vdi
+$SCRIPTSDIR/generate-vbox.sh $image.vdi
 
 if [ $zip -eq 1 ]; then
     info "Compress to $image.7z"

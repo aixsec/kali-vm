@@ -9,17 +9,11 @@ info() { echo "INFO:" "$@"; }
 
 image=
 keep=0
-keyboard=
 zip=0
 
 while [ $# -gt 0 ]; do
     case $1 in
         -k) keep=1 ;;
-        -K) shift  # Move to the next argument to get the value for keyboard
-            if [ $# -gt 0 ]; then
-                keyboard=$1
-            fi
-            ;;
         -z) zip=1 ;;
         *) image=$1 ;;
     esac
@@ -53,7 +47,7 @@ pause
 EOF
 
 info "Generate create-vm.ps1"
-$SCRIPTSDIR/generate-powershell.sh -K $keyboard $image.vhdx create-vm.ps1
+$SCRIPTSDIR/generate-powershell.sh $image.vhdx create-vm.ps1
 
 if [ $zip -eq 1 ]; then
     info "Compress to $image.7z"

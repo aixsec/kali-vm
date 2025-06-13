@@ -3,7 +3,6 @@
 {{- $imagename := .imagename }}
 {{- $imagesize := .imagesize }}
 {{- $keep := .keep }}
-{{- $keyboard := .keyboard }}
 {{- $uefi := .uefi }}
 {{- $variant := .variant }}
 {{- $zip := .zip }}
@@ -143,4 +142,4 @@ actions:
     label: "export-{{ $format }}"
     action: run
     postprocess: true
-    script: scripts/export-{{ $format }}.sh {{ if eq $keep "true" }}-k{{ end }} -K {{ $keyboard }} {{ if eq $zip "true" }}-z{{ end }} {{ $imagename }}
+    script: scripts/export-{{ $format }}.sh {{ if eq $keep "true" }}-k{{ end }} {{ if eq $zip "true" }}-z{{ end }} {{ $imagename }}

@@ -54,7 +54,6 @@ actions:
       imagename: {{ $imagename }}
       imagesize: {{ $imagesize }}
       keep: {{ $keep }}
-      keyboard: {{ $keyboard }}
       uefi: {{ $uefi }}
       variant: {{ $variant }}
       zip: {{ $zip }}

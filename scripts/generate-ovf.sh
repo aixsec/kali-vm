@@ -3,7 +3,7 @@
 set -eu
 
 fail() { echo "$@" >&2; exit 1; }
-usage() { fail "Usage: $(basename $0) [-K <KeyboardLayout>] VMDK"; }
+usage() { fail "Usage: $(basename $0) VMDK"; }
 
 get_vmdk_disk_uuid() {
 
@@ -62,20 +62,7 @@ get_virtual_disk_format() {
     echo $url
 }
 
-keyboard_layout=us
-
 # Validate arguments
-
-while [ $# -gt 0 ]; do
-    case $1 in
-        -K)
-            shift
-            keyboard_layout=$1
-            ;;
-        *) break ;;
-    esac
-    shift
-done
 
 [ $# -eq 1 ] || usage
 
@@ -131,7 +118,6 @@ esac
 
 description=$(sed \
     -e "s|%date%|$(date --iso-8601)|g" \
-    -e "s|%kbdlayout%|$keyboard_layout keyboard layout|g" \
     -e "s|%platform%|$platform|g" \
     -e "s|%version%|$version|g" \
     $description_template)

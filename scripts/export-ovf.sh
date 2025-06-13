@@ -9,17 +9,11 @@ info() { echo "INFO:" "$@"; }
 
 image=
 keep=0
-keyboard=
 zip=0
 
 while [ $# -gt 0 ]; do
     case $1 in
         -k) keep=1 ;;
-        -K) shift  # Move to the next argument to get the value for keyboard
-            if [ $# -gt 0 ]; then
-                keyboard=$1
-            fi
-            ;;
         -z) zip=1 ;;
         *) image=$1 ;;
     esac
@@ -34,7 +28,7 @@ qemu-img convert -O vmdk $image.raw $image.vmdk
 [ $keep -eq 1 ] || rm -f $image.raw
 
 info "Generate $image.ovf"
-$SCRIPTSDIR/generate-ovf.sh -K $keyboard $image.vmdk
+$SCRIPTSDIR/generate-ovf.sh $image.vmdk
 
 info "Generate $image.mf"
 $SCRIPTSDIR/generate-mf.sh $image.ovf $image.vmdk
