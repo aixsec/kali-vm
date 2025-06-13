@@ -118,7 +118,6 @@ esac
 
 description=$(sed \
     -e "s|%date%|$(date --iso-8601)|g" \
-    -e "s|%kbdlayout%|US keyboard layout|g" \
     -e "s|%platform%|$platform|g" \
     -e "s|%version%|$version|g" \
     $description_template)

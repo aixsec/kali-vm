@@ -5,7 +5,6 @@ Kali Rolling (%version%) %platform%
 
 Username: kali
 Password: kali
-(%kbdlayout%)
 
 - - - - - - - - - - - - - - - - - -
 

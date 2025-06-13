@@ -12,6 +12,7 @@
 
 {{- $desktop := .desktop }}
 {{- $hostname := .hostname }}
+{{- $keyboard := .keyboard }}
 {{- $locale := .locale }}
 {{- $password := .password }}
 {{- $packages := .packages }}
@@ -35,6 +36,7 @@ actions:
       mirror: {{ $mirror }}
       desktop: {{ $desktop }}
       hostname: {{ $hostname }}
+      keyboard: {{ $keyboard }}
       locale: {{ $locale }}
       password: {{ $password }}
       packages: {{ $packages }}
