@@ -60,12 +60,10 @@ default_toolset() { [ ${DESKTOP:-$DEFAULT_DESKTOP} = none ] \
     && echo headless \
     || echo $DEFAULT_TOOLSET; }
 default_version() { echo ${BRANCH:-$DEFAULT_BRANCH} | sed "s/^kali-//"; }
-get_keyboard() { [-e /etc/default/keyboard ] \
-    && echo $(grep "XKBLAYOUT" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "')/ \
-            $(grep "XKBMODEL" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "')/ \
-            $(grep "XKBVARIANT" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "')/ \
-            $(grep "XKBOPTIONS" /etc/default/keyboard | awk -F'=' '{print $2}' | tr -d ' "') \
-    || echo $DEFAULT_KEYBOARD; }
+get_keyboard() { (. /etc/default/keyboard 2>/dev/null \
+    && echo "$XKBLAYOUT/$XKBMODEL/$XKBVARIANT/$XKBOPTIONS" \
+    || echo $DEFAULT_KEYBOARD);
+}
 get_locale() { [ -v $LANG ] \
     && echo $LANG \
     || echo $DEFAULT_LOCALE; }
