@@ -22,6 +22,7 @@ DEFAULT_ARCH=amd64
 DEFAULT_BRANCH=kali-rolling
 DEFAULT_DESKTOP=xfce
 DEFAULT_HOSTNAME=kali
+DEFAULT_KEYBOARD=us
 DEFAULT_LOCALE=en_US.UTF-8
 DEFAULT_MIRROR=http://http.kali.org/kali
 DEFAULT_TIMEZONE=America/New_York
@@ -35,6 +36,7 @@ DESKTOP=
 FORMAT=
 HOSTNAME=
 KEEP=false
+KEYBOARD=
 LOCALE=
 MIRROR=
 PACKAGES=
@@ -58,6 +60,10 @@ default_toolset() { [ ${DESKTOP:-$DEFAULT_DESKTOP} = none ] \
     && echo headless \
     || echo $DEFAULT_TOOLSET; }
 default_version() { echo ${BRANCH:-$DEFAULT_BRANCH} | sed "s/^kali-//"; }
+get_keyboard() { (. /etc/default/keyboard 2>/dev/null \
+    && echo "$XKBLAYOUT/$XKBMODEL/$XKBVARIANT/$XKBOPTIONS" \
+    || echo $DEFAULT_KEYBOARD);
+}
 get_locale() { [ -v $LANG ] \
     && echo $LANG \
     || echo $DEFAULT_LOCALE; }
@@ -114,6 +120,60 @@ valid_hostname() {
     [[ $name =~ ^-|-$ ]] \
         && return 1
     return 0
+}
+
+valid_keyboard() {
+    # Cf. keyboard(5) and xkeyboard-config(7)
+    if [ -e /usr/share/X11/xkb/rules/xorg.lst ]; then
+        IFS='/' read -r layouts model variants options <<< "$1"
+
+        if [[ -n "$layouts" ]]; then
+            local valid_layouts=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! layout/,/^$/p' | awk 'NR > 1 {print $1}')
+            IFS=',' read -r -a layout_array <<< "$layouts"
+            for layout in "${layout_array[@]}"; do
+                if ! echo "$valid_layouts" | grep -q -w "$layout"; then
+                    echo "Invalid layout: $layout"
+                    return 1
+                fi
+            done
+        fi
+
+        if [[ -n "$model" ]]; then
+            local valid_models=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! model/,/^$/p' | awk 'NR > 1 {print $1}')
+            if ! echo "$valid_models" | grep -q -w "$model"; then
+                echo "Invalid model: $model"
+                return 1
+            fi
+        fi
+
+        if [[ -n "$variants" ]]; then
+            local valid_variants=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! variant/,/^$/p' | awk 'NR > 1 {print $1}')
+            IFS=',' read -r -a variant_array <<< "$variants"
+            for variant in "${variant_array[@]}"; do
+                if ! echo "$valid_variants" | grep -q -w "$variant"; then
+                    echo "Invalid variant: $variant"
+                    return 1
+                fi
+            done
+        fi
+
+        if [[ -n "$options" ]]; then
+            local valid_options=$(cat /usr/share/X11/xkb/rules/xorg.lst | sed -n '/^! option/,/^$/p' | awk 'NR > 1 {print $1}')
+            IFS=',' read -r -a option_array <<< "$options"
+            for option in "${option_array[@]}"; do
+                if ! echo "$valid_options" | grep -q -w "$option"; then
+                    echo "Invalid option: $option"
+                    return 1
+                fi
+            done
+        fi
+
+        return 0
+    else 
+        # X11/XKB is not installed on all systems - the layout could still be valid, so no need to exit here
+        echo "Failed to validate keyboard because the file with allowed values is missing. This may happen because X11 is not installed (For example when building in container). The build may fail later on."
+        return 0
+    fi
 }
 
 kali_message() {
@@ -207,6 +267,11 @@ Customization options:
   -D DESKTOP  Desktop environment installed in the image, default: $(b $DEFAULT_DESKTOP)
               Supported values: $SUPPORTED_DESKTOPS
   -H HOSTNAME Set system host name, default: $(b $DEFAULT_HOSTNAME)
+  -K KEYBOARD Set keyboard layout, default: $(b $DEFAULT_KEYBOARD)
+              For multiple layouts, use comma separated lists
+              For additionally configuring model, variant and options, use slash separated lists
+              If leaving one empty, the default will be kept
+              Example: us//nodeadkeys/grp:toggle,grp_led:scroll
   -L LOCALE   Set locale, default: $(b $DEFAULT_LOCALE)
   -P PACKAGES Install extra packages (comma/space separated list)
   -T TOOLSET  The selection of tools to include in the image, default: $(b $(default_toolset))
@@ -244,7 +309,7 @@ Most useful debos options:
 Refer to the README.md for examples
 "
 
-while getopts ":a:b:D:f:hH:kL:m:P:r:s:T:U:v:x:zZ:" opt; do
+while getopts ":a:b:D:f:hH:kK:L:m:P:r:s:T:U:v:x:zZ:" opt; do
     case $opt in
         (a) ARCH=$OPTARG ;;
         (b) BRANCH=$OPTARG ;;
@@ -253,6 +318,7 @@ while getopts ":a:b:D:f:hH:kL:m:P:r:s:T:U:v:x:zZ:" opt; do
         (h) echo "$USAGE"; exit 0 ;;
         (H) HOSTNAME=$OPTARG ;;
         (k) KEEP=true ;;
+        (K) KEYBOARD=$OPTARG ;;
         (L) LOCALE=$OPTARG ;;
         (m) MIRROR=$OPTARG ;;
         (P) PACKAGES="$PACKAGES $OPTARG" ;;
@@ -281,6 +347,7 @@ if [ "$ROOTFS" ]; then
     [ "$BRANCH"   ] && fail_mismatch -b -r
     [ "$DESKTOP"  ] && fail_mismatch -D -r
     [ "$HOSTNAME" ] && fail_mismatch -H -r
+    [ "$KEYBOARD" ] && fail_mismatch -K -r
     [ "$LOCALE"   ] && fail_mismatch -L -r
     [ "$MIRROR"   ] && fail_mismatch -m -r
     [ "$TIMEZONE" ] && fail_mismatch -Z -r
@@ -304,6 +371,7 @@ else
     [ "$TOOLSET"  ] || TOOLSET=$(default_toolset)
     [ "$USERPASS" ] || USERPASS=$DEFAULT_USERPASS
     [ "$VERSION"  ] || VERSION=$(default_version)
+    [ "$KEYBOARD" = same ] && KEYBOARD=$(get_keyboard)
     [ "$LOCALE" = same   ] && LOCALE=$(get_locale)
     [ "$TIMEZONE" = same ] && TIMEZONE=$(get_timezone)
     # Validate some options
@@ -316,6 +384,8 @@ else
     # Validate hostname, cf. hostname(7)
     valid_hostname "$HOSTNAME" \
         || fail_invalid -H "$HOSTNAME" "must contain only letters, digits and hyphens"
+    valid_keyboard "$KEYBOARD" \
+        || fail_invalid -H "$KEYBOARD" "must be of the form <layouts>/<models>/<variants>/<options> with valus listed in /usr/share/X11/xkb/rules/xorg.lst"
     # Unpack USERPASS to USERNAME and PASSWORD
     echo $USERPASS | grep -q ":" \
         || fail_invalid -U $USERPASS "must be of the form <username>:<password>"
@@ -448,6 +518,7 @@ echo "# Build options:"
 [ "$PACKAGES" ] && point "additional packages: $(b $PACKAGES)"
 [ "$USERNAME" ] && point "username & password: $(b $USERNAME $PASSWORD)"
 [ "$HOSTNAME" ] && point "hostname: $(b $HOSTNAME)"
+[ "$KEYBOARD" ] && point "keyboard: $(b $KEYBOARD)"
 [ "$LOCALE"   ] && point "locale: $(b $LOCALE)"
 [ "$TIMEZONE" ] && point "timezone: $(b $TIMEZONE)"
 [ "$KEEP"     ] && point "keep temporary files: $(b $KEEP)"
@@ -483,6 +554,7 @@ debos "$@" \
     -t imagename:$IMAGENAME \
     -t imagesize:$SIZE \
     -t keep:$KEEP \
+    -t keyboard:$KEYBOARD \
     -t locale:$LOCALE \
     -t mirror:$MIRROR \
     -t packages:"$PACKAGES" \

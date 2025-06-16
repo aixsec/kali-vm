@@ -4,6 +4,7 @@
 
 {{- $desktop := .desktop }}
 {{- $hostname := .hostname }}
+{{- $keyboard := .keyboard }}
 {{- $locale := .locale }}
 {{- $password := .password }}
 {{- $packages := .packages }}
@@ -72,6 +73,11 @@ actions:
 
   - action: overlay
     source: overlays/loopback-interface
+
+  - description: "Set default keyboard {{ $keyboard }}"
+    action: run
+    chroot: true
+    script: scripts/setup-keyboard.sh {{ $keyboard }}
 
   - description: "Create user {{ $username }}"
     action: run
