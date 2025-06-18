@@ -54,6 +54,34 @@ exit /B
 
 REM Run when administrative
 :admin
+REM Check if Hyper-V is installed/enabled
+for /f "usebackq delims=" %%a in (`PowerShell -NoProfile -ExecutionPolicy Bypass -Command "$feature = Get-WindowsOptionalFeature -Online | Where-Object { $_.FeatureName -eq 'Microsoft-Hyper-V' }; $feature.State.ToString().ToLower()"`) do (
+    set "hvstatus=%%a"
+)
+if /i "%hvstatus%"=="enabled" (
+  echo [i] Hyper-V is ENABLED
+) else if /i "%hvstatus%"=="disabled" (
+  echo [i] Hyper-V is DISABLED. Enabling...
+
+  for /f "delims=" %%i in ('powershell -NoProfile -Command "if (Get-Command Install-WindowsFeature -ErrorAction SilentlyContinue) { 'FOUND' } else { 'NOT FOUND' }"') do set "result=%%i"
+  if /i "%result%"=="FOUND" (
+    echo [i] Likely on Windows Server
+    PowerShell -NoProfile -ExecutionPolicy Bypass -Command "Install-WindowsFeature -Name Hyper-V -IncludeManagementTools"
+  ) else (
+    echo [i] Likely on Windows 10/11
+    dism /Online /Enable-Feature /FeatureName:Microsoft-Hyper-V /All /LimitAccess /NoRestart
+    dism /Online /Enable-Feature /FeatureName:Microsoft-Hyper-V-Management-PowerShell /All /LimitAccess /NoRestart
+    REM PowerShell -NoProfile -ExecutionPolicy Bypass -Command "Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Management-PowerShell -All -LimitAccess -NoRestart"
+  )
+  echo.
+  echo.
+  echo [i] Now reboot/restart
+  pause
+  exit /B
+) else (
+  echo [-] Could not determine Hyper-V status: %hvstatus%
+)
+
 REM Install VM
 echo [i] Importing VM to Hyper-V
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command ""cd %~dp0; .\create-vm.ps1""
