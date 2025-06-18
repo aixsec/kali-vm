@@ -88,6 +88,9 @@ PowerShell -NoProfile -ExecutionPolicy Bypass -Command ""cd %~dp0; .\create-vm.p
 pause
 EOF
 
+## Make notepad.exe happy
+unix2dos install-vm.bat
+
 info "Generate create-vm.ps1"
 $SCRIPTSDIR/generate-powershell.sh $image.vhdx create-vm.ps1
 
