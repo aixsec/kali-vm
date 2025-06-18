@@ -3,13 +3,15 @@
 
 $Name = "%Name%"
 $Description = "%Description%"
+$SwitchName = "Default Switch"
+$VHDPath = ".\%VHDPath%"
 
 New-VM `
   -Generation 2 `
   -Name "$Name" `
   -MemoryStartupBytes 2048MB `
-  -SwitchName "Default Switch" `
-  -VHDPath ".\%VHDPath%"
+  -SwitchName $SwitchName `
+  -VHDPath $VHDPath
 
 Set-VM -Name "$Name" -Notes "$Description"
 Set-VM -Name "$Name" -EnhancedSessionTransportType HVSocket
