@@ -88,11 +88,11 @@ PowerShell -NoProfile -ExecutionPolicy Bypass -Command ""cd %~dp0; .\create-vm.p
 pause
 EOF
 
-## Make notepad.exe happy
-unix2dos install-vm.bat
-
 info "Generate create-vm.ps1"
 $SCRIPTSDIR/generate-powershell.sh $image.vhdx create-vm.ps1
+
+# Set Windows EOL (\r\n) to make notepad.exe happy
+sed -i 's/\r*$/\r/g' install-vm.bat create-vm.ps1
 
 if [ $zip -eq 1 ]; then
     info "Compress to $image.7z"
