@@ -119,12 +119,14 @@ configure_etc_hosts() {
 }
 
 save_debconf() {
-    # save values for keyboard-configuration, otherwise debconf will
-    # ask to configure the keyboard when the package is upgraded.
-    if pkg_installed keyboard-configuration; then
+    # save some values in the debconf database, otherwise debconf
+    # might ask questions when those packages are upgraded
+    for pkg in keyboard-configuration tzdata; do
+        pkg_installed $pkg || continue
+        echo "INFO: saving package configuration: $pkg"
         DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
-            dpkg-reconfigure keyboard-configuration
-    fi
+            dpkg-reconfigure $pkg
+    done
 }
 
 while [ $# -ge 1 ]; do

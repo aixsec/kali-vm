@@ -11,8 +11,3 @@ fi
 
 rm -f /etc/localtime
 ln -s /usr/share/zoneinfo/$zone /etc/localtime
-
-# Save settings in the debconf database
-DEBIAN_FRONTEND=noninteractive \
-DEBCONF_NONINTERACTIVE_SEEN=true \
-    dpkg-reconfigure tzdata
