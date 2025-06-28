@@ -77,9 +77,12 @@ if /i "%hvstatus%"=="enabled" (
   exit /B
 ) else (
   echo [-] Could not determine Hyper-V status: %hvstatus%
+  pause
+  REM exit /B
 )
 
 REM Install VM
+:import
 echo [i] Importing VM to Hyper-V
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command ""cd %~dp0; .\create-vm.ps1""
 
