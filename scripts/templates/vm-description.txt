@@ -9,16 +9,16 @@ Password: kali
 - - - - - - - - - - - - - - - - - -
 
 * Kali Homepage:
-https://www.kali.org/
+  https://www.kali.org/
 
 * Kali Documentation:
-https://www.kali.org/docs/
+  https://www.kali.org/docs/
 
 * Kali Tools:
-https://www.kali.org/tools/
+  https://www.kali.org/tools/
 
 * Forum/Community Support:
-https://forums.kali.org/
+  https://forums.kali.org/
 
 * Community Chat:
-https://discord.kali.org
+  https://discord.kali.org/
