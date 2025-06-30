@@ -2,6 +2,8 @@
 
 set -eu
 
+RECIPEDIR=${RECIPEDIR:-$(pwd)}
+
 fail() { echo "$@" >&2; exit 1; }
 usage() { fail "Usage: $(basename $0) VMDK"; }
 
