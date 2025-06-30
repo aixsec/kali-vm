@@ -32,6 +32,7 @@ if [ $zip -eq 1 ]; then
 
     info "Compress to $image.img.xz"
     xz -f $image.img
+    [ $keep -eq 1 ] || rm -rf $image.img
 fi
 
 for fn in $image.*; do

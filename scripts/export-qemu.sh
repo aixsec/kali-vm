@@ -29,6 +29,7 @@ qemu-img convert -O qcow2 $image.raw $image.qcow2
 if [ $zip -eq 1 ]; then
     info "Compress to $image.7z"
     7zr a -sdel -mx=9 $image.7z $image.qcow2
+    [ $keep -eq 1 ] || rm -rf $image.qcow2
 fi
 
 for fn in $image.*; do

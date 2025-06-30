@@ -104,6 +104,7 @@ if [ $zip -eq 1 ]; then
     mkdir $image
     mv $image.vhdx install-vm.bat create-vm.ps1 $image
     7zr a -sdel -mx=9 $image.7z $image
+    [ $keep -eq 1 ] || rm -rf $image
 fi
 
 for fn in create-vm.ps1 install-vm.bat $image.*; do

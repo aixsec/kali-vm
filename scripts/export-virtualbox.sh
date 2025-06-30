@@ -34,6 +34,7 @@ if [ $zip -eq 1 ]; then
     mkdir $image
     mv $image.vdi $image.vbox $image
     7zr a -sdel -mx=9 $image.7z $image
+    [ $keep -eq 1 ] || rm -vrf $image
 fi
 
 for fn in $image.*; do
