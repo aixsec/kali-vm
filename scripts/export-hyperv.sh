@@ -31,23 +31,19 @@ info "Create install-vm.bat"
 cat << 'EOF' > install-vm.bat
 @echo off
 
-
-REM What happens in this script, says in this script
+REM What happens in this script, stays in this script
 setlocal
 
 
-REM Help, if needed
-REM echo [i] Help? https://www.kali.org/docs/virtualization/import-premade-hyperv/
-
-
 REM Check for administrative privileges
+echo [i] Checking for administrative access
 net file 1>nul 2>nul
 if "%errorlevel%" == "0" (goto admin)
 
 
 REM Generate UAC request & re-run self
 :elevate
-echo [-] Non-administrative
+echo [-] This is a non-administrative prompt. Re-trying...
 powershell.exe Start-Process %~s0 -Verb runAs
 exit /B
 
@@ -55,6 +51,7 @@ exit /B
 REM Run when administrative
 :admin
 REM Check if Hyper-V is installed/enabled
+echo [i] Looking for Hyper-V
 for /f "usebackq delims=" %%a in (`PowerShell -NoProfile -ExecutionPolicy Bypass -Command "$feature = Get-WindowsOptionalFeature -Online | Where-Object { $_.FeatureName -eq 'Microsoft-Hyper-V' }; $feature.State.ToString().ToLower()"`) do (
     set "hvstatus=%%a"
 )
@@ -75,16 +72,24 @@ if /i "%hvstatus%"=="enabled" (
   )
   echo.
   echo.
-  echo [i] Now reboot/restart
+  echo [i] Now manually reboot/restart
   pause
   exit /B
 ) else (
   echo [-] Could not determine Hyper-V status: %hvstatus%
+  pause
+  REM exit /B
 )
 
 REM Install VM
+:import
 echo [i] Importing VM to Hyper-V
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command ""cd %~dp0; .\create-vm.ps1""
+
+REM Open Hyper-V Manager
+:open
+echo [i] Opening Hyper-V Manager
+virtmgmt.msc
 pause
 EOF
 
