@@ -9,11 +9,13 @@ info() { echo "INFO:" "$@"; }
 
 image=
 keep=0
+vagrant=0
 zip=0
 
 while [ $# -gt 0 ]; do
     case $1 in
         -k) keep=1 ;;
+        -V) vagrant=1 ;;
         -z) zip=1 ;;
         *) image=$1 ;;
     esac
@@ -22,18 +24,37 @@ done
 
 cd $ARTIFACTDIR
 
-info "Generate $image.vdi"
-qemu-img convert -O vdi $image.raw $image.vdi
-[ $keep -eq 1 ] || rm -f $image.raw
+## May of been easier to use ./export-ovf.sh
+if [ $vagrant -eq 1 ]; then
+    info "Generate $image.vmdk"
+    qemu-img convert -O vmdk $image.raw $image.vmdk
+    [ $keep -eq 1 ] || rm -f $image.raw
 
-info "Generate $image.vbox"
-$SCRIPTSDIR/generate-vbox.sh $image.vdi
+    info "Generate $image.ovf"
+    $SCRIPTSDIR/generate-ovf.sh $image.vmdk
+    ## Is there a nice way of doing this in Vagrant direct?
+    sed -i '/<EulaSection>/,/<\/EulaSection>/d' "$image.ovf"
+    mv $image.ovf box.ovf
 
-if [ $zip -eq 1 ]; then
-    info "Compress to $image.7z"
-    mkdir $image
-    mv $image.vdi $image.vbox $image
-    7zr a -sdel -mx=9 $image.7z $image
+    info "Generate $image.mf"
+    $SCRIPTSDIR/generate-mf.sh box.ovf $image.vmdk
+
+    ${SCRIPTSDIR}/vagrant-out.sh virtualbox "${image}"
+    [ $keep -eq 1 ] || rm -vf $image.vmdk box.ovf box.mf info.json metadata.json Vagrantfile
+else
+    info "Generate $image.vdi"
+    qemu-img convert -O vdi $image.raw $image.vdi
+    [ $keep -eq 1 ] || rm -f $image.raw
+
+    info "Generate $image.vbox"
+    $SCRIPTSDIR/generate-vbox.sh $image.vdi
+
+    if [ $zip -eq 1 ]; then
+        info "Compress to $image.7z"
+        mkdir $image
+        mv $image.vdi $image.vbox $image
+        7zr a -sdel -mx=9 $image.7z $image
+    fi
 fi
 
 for fn in $image.*; do

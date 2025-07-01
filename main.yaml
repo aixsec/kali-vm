@@ -7,6 +7,7 @@
 {{- $mirror := .mirror }}
 {{- $rootfs := .rootfs }}
 {{- $uefi := .uefi }}
+{{- $vagrant := .vagrant }}
 {{- $variant := .variant }}
 {{- $zip := .zip }}
 
@@ -55,6 +56,7 @@ actions:
       imagesize: {{ $imagesize }}
       keep: {{ $keep }}
       uefi: {{ $uefi }}
+      vagrant: {{ $vagrant }}
       variant: {{ $variant }}
       zip: {{ $zip }}
 {{ else }}

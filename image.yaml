@@ -4,6 +4,7 @@
 {{- $imagesize := .imagesize }}
 {{- $keep := .keep }}
 {{- $uefi := .uefi }}
+{{- $vagrant := .vagrant }}
 {{- $variant := .variant }}
 {{- $zip := .zip }}
 
@@ -121,6 +122,13 @@ actions:
     chroot: true
     script: scripts/finish-install.sh apt-sources debconf usergroups
 
+{{ if eq $vagrant "true" }}
+  - description: "Setting up Vagrant"
+    action: run
+    chroot: true
+    script: scripts/vagrant-in.sh
+{{ end }}
+
   - description: "Final cleanup (from within)"
     action: run
     chroot: true
@@ -142,4 +150,4 @@ actions:
     label: "export-{{ $format }}"
     action: run
     postprocess: true
-    script: scripts/export-{{ $format }}.sh {{ if eq $keep "true" }}-k{{ end }} {{ if eq $zip "true" }}-z{{ end }} {{ $imagename }}
+    script: scripts/export-{{ $format }}.sh {{ if eq $keep "true" }}-k{{ end }} {{ if eq $zip "true" }}-z{{ end }} {{ if eq $vagrant "true" }}-V{{ end }} {{ $imagename }}
