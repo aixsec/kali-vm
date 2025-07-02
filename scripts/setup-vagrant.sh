@@ -14,8 +14,13 @@ info "Set root password"
 echo "root:${username}" | chpasswd
 
 ## "vagrant" User
-info "Create ${username} user"
-#useradd -m -G ${username} ${username}
+existing_user=$(ls /home/)
+if [ "$existing_user" != vagrant ]; then
+    info "Rename unprivileged user: ${existing_user} -> ${username}"
+    usermod --login ${username} ${existing_user}
+    groupmod --new-name ${username} ${existing_user}
+    usermod --home /home/${username} --move-home ${username}
+fi
 usermod -aG ${username} ${username}
 info "Set ${username} password"
 echo "${username}:${username}" | chpasswd

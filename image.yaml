@@ -125,7 +125,7 @@ actions:
   - description: "Setting up Vagrant"
     action: run
     chroot: true
-    script: scripts/vagrant-in.sh
+    script: scripts/setup-vagrant.sh
 {{ end }}
 
   - description: "Final cleanup (from within)"

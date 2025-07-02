@@ -384,8 +384,6 @@ else
         || fail_invalid -H "$HOSTNAME" "must contain only letters, digits and hyphens"
     valid_keyboard "$KEYBOARD" \
         || fail_invalid -K "$KEYBOARD" "must be of the form <layouts>/<models>/<variants>/<options>, cf. README.md for details"
-    # Vagrant format: override USERPASS
-    [ "$FORMAT" = vagrant ] && USERPASS="vagrant:vagrant"
     # Unpack USERPASS to USERNAME and PASSWORD
     echo $USERPASS | grep -q ":" \
         || fail_invalid -U $USERPASS "must be of the form <username>:<password>"
