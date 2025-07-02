@@ -35,6 +35,7 @@ $SCRIPTSDIR/generate-vmx.sh $image.vmwarevm/$image.vmdk
 if [ $zip -eq 1 ]; then
     info "Compress to $image.7z"
     7zr a -sdel -mx=9 $image.7z $image.vmwarevm
+    [ $keep -eq 1 ] || rm -rf $image.vmwarevm
 fi
 
 for fn in $image.*; do

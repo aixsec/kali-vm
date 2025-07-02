@@ -36,6 +36,7 @@ $SCRIPTSDIR/generate-mf.sh $image.ovf $image.vmdk
 if [ $zip -eq 1 ]; then
     info "Compress to $image.7z"
     7zr a -sdel -mx=9 $image.7z $image.ovf $image.vmdk $image.mf
+    [ $keep -eq 1 ] || rm -rf $image.ovf $image.vmdk $image.mf
 fi
 
 for fn in $image.*; do
