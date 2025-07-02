@@ -2,6 +2,8 @@
 
 set -eu
 
+RECIPEDIR=${RECIPEDIR:-$(pwd)}
+
 # Helpers
 
 fail() { echo "$@" >&2; exit 1; }

@@ -2,6 +2,7 @@
 
 set -eu
 
+RECIPEDIR=${RECIPEDIR:-$(pwd)}
 SCRIPTSDIR=$RECIPEDIR/scripts
 START_TIME=$(date +%s)
 

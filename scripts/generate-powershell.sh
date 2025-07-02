@@ -2,6 +2,8 @@
 
 set -eu
 
+RECIPEDIR=${RECIPEDIR:-$(pwd)}
+
 # Validate arguments
 
 [ $# -eq 2 ] || usage
