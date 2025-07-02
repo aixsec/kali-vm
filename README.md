@@ -90,7 +90,7 @@ Build options:
   -b BRANCH   Kali branch used to build the image, default: kali-rolling
               Supported values: kali-dev kali-last-snapshot kali-rolling
   -f FORMAT   Format to export the image to, default depends on the VARIANT
-              Supported values: hyperv ova ovf qemu raw virtualbox vmware
+              Supported values: hyperv ova ovf qemu raw vagrant virtualbox vmware
   -k          Keep raw disk image and other intermediary build artifacts
   -m MIRROR   Mirror used to build the image, default: http://http.kali.org/kali
   -r ROOTFS   rootfs to use to build the image, default: none
@@ -189,6 +189,20 @@ Let's also install the package `metasploit-framework`:
 
 ```console
 ./build.sh -v generic -f ova -D headless -P metasploit-framework
+```
+
+- - -
+
+When building a series of images, it might be more convenient (and faster) to split the build in two parts: first, build a rootfs, and then build the images by re-using this rootfs as a starting point.
+
+In the example below, we built a kali-rolling rootfs first, and then we build a series of Vagrant images:
+
+```console
+./build.sh -b kali-rolling -v rootfs
+./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v hyperv
+./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v virtualbox
+./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v vmware
+./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v qemu
 ```
 
 - - -

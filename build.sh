@@ -15,7 +15,7 @@ SUPPORTED_ARCHITECTURES="amd64"
 SUPPORTED_BRANCHES="kali-dev kali-last-snapshot kali-rolling"
 SUPPORTED_DESKTOPS="e17 gnome i3 kde lxde mate xfce none"
 SUPPORTED_TOOLSETS="default everything headless large none"
-SUPPORTED_FORMATS="hyperv ova ovf qemu raw virtualbox vmware"
+SUPPORTED_FORMATS="hyperv ova ovf qemu raw vagrant virtualbox vmware"
 SUPPORTED_VARIANTS="generic hyperv qemu rootfs virtualbox vmware"
 
 DEFAULT_ARCH=amd64
@@ -48,7 +48,6 @@ TOOLSET=
 UEFI=
 USERNAME=
 USERPASS=
-VAGRANT=false
 VARIANT=
 VERSION=
 ZIP=false
@@ -276,7 +275,6 @@ Customization options:
   -T TOOLSET  The selection of tools to include in the image, default: $(b $(default_toolset))
               Supported values: $SUPPORTED_TOOLSETS
   -U USERPASS Username and password, separated by a colon, default: $(b $DEFAULT_USERPASS)
-  -V          Make box Vagrant supported (fixed username, password, SSH keys and other tweaks)
   -Z TIMEZONE Set timezone, default: $(b $DEFAULT_TIMEZONE)
 
 The different variants of images are:
@@ -309,7 +307,7 @@ Most useful debos options:
 Refer to the README.md for examples
 "
 
-while getopts ":a:b:D:f:hH:kK:L:m:P:r:s:T:U:v:Vx:zZ:" opt; do
+while getopts ":a:b:D:f:hH:kK:L:m:P:r:s:T:U:v:x:zZ:" opt; do
     case $opt in
         (a) ARCH=$OPTARG ;;
         (b) BRANCH=$OPTARG ;;
@@ -327,7 +325,6 @@ while getopts ":a:b:D:f:hH:kK:L:m:P:r:s:T:U:v:Vx:zZ:" opt; do
         (T) TOOLSET=$OPTARG ;;
         (U) USERPASS=$OPTARG ;;
         (v) VARIANT=$OPTARG ;;
-        (V) VAGRANT=true ;;
         (x) VERSION=$OPTARG ;;
         (z) ZIP=true ;;
         (Z) TIMEZONE=$OPTARG ;;
@@ -376,7 +373,6 @@ else
     [ "$KEYBOARD" = same ] && KEYBOARD=$(get_keyboard)
     [ "$LOCALE" = same   ] && LOCALE=$(get_locale)
     [ "$TIMEZONE" = same ] && TIMEZONE=$(get_timezone)
-    [ "$VAGRANT"  ] && USERPASS="vagrant:vagrant"
     # Validate some options
     in_list $BRANCH $SUPPORTED_BRANCHES \
         || fail_invalid -v $BRANCH
@@ -388,6 +384,8 @@ else
         || fail_invalid -H "$HOSTNAME" "must contain only letters, digits and hyphens"
     valid_keyboard "$KEYBOARD" \
         || fail_invalid -K "$KEYBOARD" "must be of the form <layouts>/<models>/<variants>/<options>, cf. README.md for details"
+    # Vagrant format: override USERPASS
+    [ "$FORMAT" = vagrant ] && USERPASS="vagrant:vagrant"
     # Unpack USERPASS to USERNAME and PASSWORD
     echo $USERPASS | grep -q ":" \
         || fail_invalid -U $USERPASS "must be of the form <username>:<password>"
@@ -524,7 +522,6 @@ echo "# Build options:"
 [ "$LOCALE"   ] && point "locale: $(b $LOCALE)"
 [ "$TIMEZONE" ] && point "timezone: $(b $TIMEZONE)"
 [ "$KEEP"     ] && point "keep temporary files: $(b $KEEP)"
-[ "$VAGRANT"  ] && point "Vagrant support: $(b $VAGRANT)"
 } \
     | kali_message "Kali Linux VM Build"
 
@@ -567,7 +564,6 @@ debos "$@" \
     -t toolset:$TOOLSET \
     -t uefi:$UEFI \
     -t username:$USERNAME \
-    -t vagrant:$VAGRANT \
     -t variant:$VARIANT \
     -t zip:$ZIP \
     main.yaml

@@ -9,13 +9,11 @@ info() { echo "INFO:" "$@"; }
 
 image=
 keep=0
-vagrant=0
 zip=0
 
 while [ $# -gt 0 ]; do
     case $1 in
         -k) keep=1 ;;
-        -V) vagrant=1 ;;
         -z) zip=1 ;;
         *) image=$1 ;;
     esac
@@ -101,10 +99,7 @@ $SCRIPTSDIR/generate-powershell.sh $image.vhdx create-vm.ps1
 # Set Windows EOL (\r\n) to make notepad.exe happy
 sed -i 's/\r*$/\r/g' install-vm.bat create-vm.ps1
 
-if [ $vagrant -eq 1 ]; then
-    ${SCRIPTSDIR}/vagrant-out.sh hyperv "${image}"
-    [ $keep -eq 1 ] || rm -vf $image.vhdx create-vm.ps1 install-vm.bat info.json metadata.json Vagrantfile
-elif [ $zip -eq 1 ]; then
+if [ $zip -eq 1 ]; then
     info "Compress to $image.7z"
     mkdir $image
     mv $image.vhdx install-vm.bat create-vm.ps1 $image
