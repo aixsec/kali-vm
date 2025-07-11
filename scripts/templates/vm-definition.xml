@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <properties>
+    <subtype type="integer">1</subtype>
+    <name type="string">%MachineName%</name>
+  </properties>
+  <boot>
+    <device0 type="string">Optical</device0>
+  </boot>
+  <secure_boot_enabled type="bool">False</secure_boot_enabled>
+  <secure_boot_template type="string">MicrosoftWindows</secure_boot_template>
+  <vm-controllers>
+    <scsi ChannelInstanceGuid="x">
+      <controller0>
+        <drive0>
+          <pathname type="string">..\Virtual Hard Disks\%DiskFile%</pathname>
+          <type type="string">VHD</type>
+        </drive0>
+      </controller0>
+    </scsi>
+  </vm-controllers>
+  <settings>
+    <processors>
+      <count type="integer">2</count>
+    </processors>
+  </settings>
+  <memory>
+    <bank>
+      <dynamic_memory_enabled type="bool">False</dynamic_memory_enabled>
+      <limit type="integer">67108864</limit>
+      <reservation type="integer">512</reservation>
+      <size type="integer">2048</size>
+    </bank>
+  </memory>
+  <notes type="string">
+    %Description%
+  </notes>
+</configuration>

@@ -200,10 +200,22 @@ In the example below, we built a kali-rolling rootfs first, and then we build a 
 ```console
 ./build.sh -b kali-rolling -v rootfs
 ./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v hyperv
+./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v qemu
 ./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v virtualbox
 ./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v vmware
-./build.sh -r images/rootfs-rolling-amd64.tar.gz -f vagrant -v qemu
 ```
+
+<!--
+Bulk build:
+
+```console
+release=YYYY.X
+yes | ./build.sh -b kali-last-snapshot -v rootfs -x ${release}
+for variant in hyperv qemu virtualbox vmware; do
+  yes | ./build.sh -r images/rootfs-${release}-amd64.tar.gz -f vagrant -v $variant | tee $variant.log
+done
+```
+-->
 
 - - -
 
