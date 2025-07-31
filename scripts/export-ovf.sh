@@ -9,11 +9,13 @@ info() { echo "INFO:" "$@"; }
 
 image=
 keep=0
+vagrant=0
 zip=0
 
 while [ $# -gt 0 ]; do
     case $1 in
         -k) keep=1 ;;
+        -V) vagrant=1 ;;
         -z) zip=1 ;;
         *) image=$1 ;;
     esac
@@ -29,6 +31,17 @@ qemu-img convert -O vmdk $image.raw $image.vmdk
 
 info "Generate $image.ovf"
 $SCRIPTSDIR/generate-ovf.sh $image.vmdk
+
+## Need todo this before generate-mf.sh, otherwise, the checksum will be incorrect
+if [ $vagrant -eq 1 ]; then
+    info "Applying Vagrant patches"
+
+    ## HACK! We know that user/pass is not kali/kali but vagrant/vagrant
+    sed -E -i 's/(Username|Password): kali/\1: vagrant/' $image.ovf
+
+    ## Accept any VM EULA license agreement, otherwise will fail to import
+    sed -i '/<EulaSection>/,/<\/EulaSection>/d' $image.ovf
+fi
 
 info "Generate $image.mf"
 $SCRIPTSDIR/generate-mf.sh $image.ovf $image.vmdk

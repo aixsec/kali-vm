@@ -111,9 +111,7 @@ case $variant in
         provider=virtualbox
         vagrantfile=$vagrantfile_virtualbox
         info "Generate $image.vmdk, box.ovf and box.mf"
-        "$SCRIPTSDIR/export-ovf.sh" "$ARTIFACTDIR/$image"
-        # HACK! We know that user/pass is not kali/kali but vagrant/vagrant
-        sed -E -i 's/(Username|Password): kali/\1: vagrant/' "$ARTIFACTDIR/$image.ovf"
+        "$SCRIPTSDIR/export-ovf.sh" -V "$ARTIFACTDIR/$image"
         sed -i 's/(kali-linux-.*\.ovf)/(box.ovf)/' "$ARTIFACTDIR/$image.mf"
         mv -v "$ARTIFACTDIR/$image.ovf"  "$WORKSPACEDIR/box.ovf"
         mv -v "$ARTIFACTDIR/$image.mf"   "$WORKSPACEDIR/box.mf"
