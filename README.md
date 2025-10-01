@@ -275,14 +275,13 @@ The main use-case is to reuse it as input to build an OS image, and it's not mea
 ### Caching proxy configuration
 
 When building OS images, it is useful to have a caching mechanism in place, to avoid downloading all the packages from the Internet, again and again.
-To this effect, the build script attempts to detect known caching proxies that would be running on the local host. It should be able to detect `apt-cacher-ng` and `squid-deb-proxy`.
+To this effect, the build script attempts to detect known caching proxies that would be running on the local host. If first refers to the local APT configuration `Acquire::http::Proxy`. If not set, it then tries to detect `apt-cacher-ng` and `squid-deb-proxy` by checking if a service is listening on their default port. This mechanism doesn't work for `approx` (a well-known APT caching proxy), as it's auto-started on demand.
 
 To override this detection, you can export the environment variable `http_proxy` yourself.
 However, you should remember that the build happens within a QEMU Virtual Machine, therefore `localhost` in the build environment refers to the VM, not to the host.
 If you want to reach the host from the VM, you probably want to use `http://10.0.2.2`.
 
 For example, if you want to use a proxy that is running on your machine on the port `9876`, use: `export http_proxy=http://10.0.2.2:9876`.
-A common APT caching proxy is `approx`, it is auto-started on the port `9999` by default. Because it's auto-started, it's not detected by the build script, so you have to enable it manually: `export http_proxy=http://10.0.2.2:9999`.
 If you want to make sure that no proxy is used, use: `export http_proxy=`.
 
 Also refer to <https://github.com/go-debos/debos#environment-variables> for more details.

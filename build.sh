@@ -9,7 +9,7 @@ set -eu
 KNOWN_CACHING_PROXIES="\
 3142 apt-cacher-ng
 8000 squid-deb-proxy"
-DETECTED_CACHING_PROXY=
+DETECTED_CACHING_PROXY_PORT=
 
 SUPPORTED_ARCHITECTURES="amd64"
 SUPPORTED_BRANCHES="kali-dev kali-last-snapshot kali-rolling"
@@ -175,6 +175,30 @@ valid_keyboard() {
         echo "The build may fail later on if ever the keyboard settings are not valid."
         return 0
     fi
+}
+
+detect_apt_caching_proxy() {
+    local port=
+    local proxy=
+
+    # Use APT http_proxy if set
+    if [ -x /usr/bin/apt-config ]; then
+        proxy=$(apt-config dump --format '%v%n' Acquire::http::Proxy)
+        port=$(echo "$proxy" | awk -F: 'NF > 2 {print $NF}')
+        if [[ $port =~ ^[0-9]+$ ]]; then
+            echo "$port"
+            return
+        fi
+    fi
+
+    # Attempt to detect well-known http caching proxies on localhost,
+    # cf. bash(1) section "REDIRECTION". This is not bullet-proof.
+    while read port proxy; do
+        (</dev/tcp/localhost/$port) 2>/dev/null \
+            || continue
+        echo "$port"
+        return
+    done <<< "$KNOWN_CACHING_PROXIES"
 }
 
 kali_message() {
@@ -463,16 +487,13 @@ in_list $ARCH $SUPPORTED_ARCHITECTURES \
 # Check environment variables for http_proxy
 # [ -v ... ] isn't supported on all every bash version
 if ! [ "$(env | grep '^http_proxy=')" ]; then
-    # Attempt to detect well-known http caching proxies on localhost,
-    # cf. bash(1) section "REDIRECTION". This is not bullet-proof
-    while read port proxy; do
-        (</dev/tcp/localhost/$port) 2>/dev/null \
-            || continue
-        DETECTED_CACHING_PROXY="$port $proxy"
+    # Use a proxy to speed up, if available
+    port=$(detect_apt_caching_proxy)
+    if [ "$port" ]; then
+        DETECTED_CACHING_PROXY_PORT=$port
         # Inside QEMU VM!
         export http_proxy="http://10.0.2.2:$port"
-        break
-    done <<< "$KNOWN_CACHING_PROXIES"
+    fi
 fi
 
 # No need to be root, but the message doesn't make much sense in containers
@@ -486,9 +507,8 @@ fi
 # Print a summary
 {
 echo "# Proxy configuration:"
-if [ "$DETECTED_CACHING_PROXY" ]; then
-    read port proxy <<< $DETECTED_CACHING_PROXY
-    point "Detected caching proxy $(b $proxy) on port $(b $port)"
+if [ "$DETECTED_CACHING_PROXY_PORT" ]; then
+    point "Detected caching proxy on port $(b $DETECTED_CACHING_PROXY_PORT)"
 fi
 if [ "${http_proxy:-}" ]; then
     point "Using proxy via environment variable: $(b http_proxy=$http_proxy)"
