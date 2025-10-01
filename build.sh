@@ -379,7 +379,7 @@ if [ "$ROOTFS" ]; then
     [ "$VARIANT" != rootfs ] || fail_mismatch -r "'-v rootfs'"
     [ "$(dirname $ROOTFS)" = "$OUTDIR" ] || fail "rootfs must be within: $OUTDIR"
     ROOTFS=$(basename $ROOTFS)
-    ARCH=$(echo $ROOTFS | sed "s/\.tar\.gz$//" | rev | cut -d- -f1 | rev)
+    ARCH=$(echo $ROOTFS | sed "s/\.tar\.gz$//" | awk -F- '{print $NF}')
     VERSION=$(echo $ROOTFS | sed -E "s/^rootfs-(.*)-$ARCH\.tar\.gz$/\1/")
 else
     # If there isn't any variables setup, use default
