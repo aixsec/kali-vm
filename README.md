@@ -53,7 +53,7 @@ If building straight from your machine, using `build.sh`, you will need to insta
 -->
 
 ```console
-$ sudo apt install -y debos dosfstools p7zip qemu-utils zerofree
+$ sudo apt install -y 7zip debos dosfstools qemu-utils zerofree
 ```
 
 Then use the script `build.sh` to build an VM image directly on your machine.
